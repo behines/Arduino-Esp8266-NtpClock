@@ -5,19 +5,20 @@
 * Feb 2020
 */
 
-#include <ESP8266WiFi.h>
-
 #ifndef INC_WIFICONNECTION_H
 #define INC_WIFICONNECTION_H
+
+#include <ESP8266WiFi.h>
 
 #define WIFI_SECONDS_BETWEEN_CONNECTION_TRIES (10)
 
 class tWiFiConnection {
 public:
-  tWiFiConnection::tWiFiConnection(const char *sSsid, const char *sPassword, int iLedPin);
-  bool tWiFiConnection::ConnectToRouter(int iNumTimesToTry = 0);
+  tWiFiConnection(const char *sSsid, const char *sPassword, int iLedPin);
+  bool ConnectToRouter(int iNumTimesToTry = 0);
   int  GetStatus();
   void PrintStatus();
+  void PrintInfo();
   
 protected:
   const char *_sSsid;
@@ -26,6 +27,5 @@ protected:
   int         _status;
 
 };
-
 
 #endif /* INC_WIFICONNECTION_H */

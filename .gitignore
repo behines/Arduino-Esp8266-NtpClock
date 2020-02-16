@@ -34,3 +34,4 @@ ssidPrivate..h
 *.exe
 *.out
 *.app
+ssidPrivate.h

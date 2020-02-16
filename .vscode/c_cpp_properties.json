@@ -1,0 +1,86 @@
+{
+    "configurations": [
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "windowsSdkVersion": "8.1",
+            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio 14.0/VC/bin/cl.exe",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "msvc-x64"
+        },
+        {
+            "name": "Arduino",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:\\Users\\brad\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\4.9.2-atmel3.5.3-arduino2\\include",
+                "C:\\Users\\brad\\Documents\\Arduino\\packages\\esp8266\\hardware\\esp8266\\2.6.3\\libraries\\ESP8266WiFi\\src",
+                "C:/Users/brad/Documents/Arduino/packages/esp8266/hardware/esp8266/2.6.3/tools/sdk/include",
+                "C:/Users/brad/Documents/Arduino/packages/esp8266/hardware/esp8266/2.6.3/tools/sdk/lwip2/include"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "__ets__",
+                "ICACHE_FLASH",
+                "DNONOSDK22x_190703=1 -DF_CPU=80000000L -DLWIP_OPEN_SRC -DTCP_MSS=536 -DLWIP_FEATURES=1 -DLWIP_IPV6=0 -DARDUINO=10811 -DARDUINO_ESP8266_NODEMCU -DARDUINO_ARCH_ESP8266 \"-DARDUINO_BOARD=\\\"ESP8266_NODEMCU\\\"\" -DLED_BUILTIN=2 -DFLASHMODE_DIO -DESP8266"
+            ],
+            "windowsSdkVersion": "8.1",
+            "compilerPath": "C:/Users/brad/Documents/Arduino/packages/esp8266/tools/xtensa-lx106-elf-gcc/2.5.0-4-b40a506/bin/xtensa-lx106-elf-g++",
+            "cStandard": "c11",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "gcc-x86"
+        },
+        {
+            "name": "ESP8266",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "C:\\Users\\brad\\AppData\\Local\\Arduino15\\packages\\arduino\\tools\\avr-gcc\\4.9.2-atmel3.5.3-arduino2\\include",
+                "C:\\Users\\brad\\Documents\\Arduino\\packages\\esp8266\\hardware\\esp8266\\2.6.3\\libraries\\ESP8266WiFi\\src",
+                "C:/Users/brad/Documents/Arduino/packages/esp8266/hardware/esp8266/2.6.3/tools/sdk/include",
+                "C:/Users/brad/Documents/Arduino/packages/esp8266/hardware/esp8266/2.6.3/tools/sdk/lwip2/include"
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE",
+                "__ets__",
+                "ICACHE_FLASH",
+                "NONOSDK22x_190703=1",
+                "F_CPU=80000000L",
+                "LWIP_OPEN_SRC",
+                "TCP_MSS=536",
+                "LWIP_FEATURES=1",
+                "LWIP_IPV6=0",
+                "ARDUINO=10811",
+                "ARDUINO_ESP8266_NODEMCU",
+                "ARDUINO_ARCH_ESP8266",
+                "ARDUINO_BOARD=ESP8266_NODEMCU",
+                "LED_BUILTIN=2",
+                "FLASHMODE_DIO",
+                "ESP8266"
+            ],
+            "windowsSdkVersion": "8.1",
+            "compilerPath": "C:/Users/brad/Documents/Arduino/packages/esp8266/tools/xtensa-lx106-elf-gcc/2.5.0-4-b40a506/bin/xtensa-lx106-elf-g++",
+            "cStandard": "c11",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "gcc-x86",
+            "compilerArgs": [],
+            "browse": {
+                "path": [
+                    "${workspaceFolder}/**"
+                ],
+                "limitSymbolsToIncludedHeaders": true
+            }
+        }
+    ],
+    "version": 4
+}

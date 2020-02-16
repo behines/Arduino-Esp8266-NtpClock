@@ -26,7 +26,7 @@ tWiFiConnection::tWiFiConnection(const char *sSsid, const char *sPassword, int i
   // Init the display pin as an output
   if (iLedPin > 0)  pinMode(iLedPin, OUTPUT);
 
-  _status = WL_IDLE_STATUS:
+  _status = WL_IDLE_STATUS;
 }
 
 
@@ -52,23 +52,26 @@ bool tWiFiConnection::ConnectToRouter(int iNumTimesToTry)
 
   _status = GetStatus();
   if (_status == WL_NO_SHIELD) {
-    Serial.println("WiFi-capable hardware not present");
+    Serial.println(F("WiFi-capable hardware not present"));
     return false;
   }
 
   while (bKeepTrying) {
 
     while (_status != WL_CONNECTED) {
-      Serial.print("Attempting to connect to SSID: ");
-      Serial.println(sSsid);
+      Serial.print(F("Attempting to connect to SSID: "));
+      Serial.print(_sSsid);
       // Connect to WPA/WPA2 network. Change this line if using open or WEP network:
-      status = WiFi.begin(sSsid, sPassword);
+      WiFi.begin(_sSsid, _sPassword);
 
       // wait 10 seconds for connection:
-      for (iWait = 0; iWait < WIFI_SECONDS_BETWEEN_CONNECTION_TRIES; iWait++) {
+      for (int iWait = 0; iWait < WIFI_SECONDS_BETWEEN_CONNECTION_TRIES; iWait++) {
+        Serial.print(F("."));
         delay(1000);
-        _status = GetStatus();
-        if (_status == WL_CONNECTED)  break;
+        if (GetStatus() == WL_CONNECTED) {
+          bKeepTrying = false;
+          break;
+        }
       }
 
       PrintStatus();
@@ -78,7 +81,7 @@ bool tWiFiConnection::ConnectToRouter(int iNumTimesToTry)
     if (iNumTimesToTry > 0 && --iNumTimesToTry < 1)  bKeepTrying = false;
   }
 
-  Serial.println("\n*** Connected to wifi ***\n");
+  Serial.println(F("\n*** Connected to wifi ***\n"));
 }
 
 
@@ -103,9 +106,12 @@ bool tWiFiConnection::ConnectToRouter(int iNumTimesToTry)
 int tWiFiConnection::GetStatus()
 {
   _status = WiFi.status();
+
   if (_iLedPin > 0) {
     digitalWrite(_iLedPin, !(_status == WL_CONNECTED));
   }
+
+  return _status;
 }
 
 
@@ -119,17 +125,39 @@ int tWiFiConnection::GetStatus()
 void tWiFiConnection::PrintStatus()
 {
   switch (_status) {
-    case WL_CONNECTED:       Serial.println("Connected");         break;
-    case WL_IDLE_STATUS:     Serial.println("Idle");              break;
-    case WL_NO_SHIELD:       Serial.println("No Shield");         break;
-    case WL_NO_SSID_AVAIL:   Serial.println("No SSID Available"); break;
-    case WL_SCAN_COMPLETED:  Serial.println("Scan completed");    break;
-    case WL_CONNECT_FAILED:  Serial.println("Scan completed");    break;
-    case WL_CONNECTION_LOST: Serial.println("Connection lost");   break;
-    case WL_DISCONNECTED:    Serial.println("Disconnected");      break;
-    default:                 Serial.println("Unknown");           break;
+    case WL_CONNECTED:       Serial.println(F("Connected"));         break;
+    case WL_IDLE_STATUS:     Serial.println(F("Idle"));              break;
+    case WL_NO_SHIELD:       Serial.println(F("No Shield"));         break;
+    case WL_NO_SSID_AVAIL:   Serial.println(F("No SSID Available")); break;
+    case WL_SCAN_COMPLETED:  Serial.println(F("Scan completed"));    break;
+    case WL_CONNECT_FAILED:  Serial.println(F("Scan completed"));    break;
+    case WL_CONNECTION_LOST: Serial.println(F("Connection lost"));   break;
+    case WL_DISCONNECTED:    Serial.println(F("Disconnected"));      break;
+    default:                 Serial.println(F("Unknown"));           break;
   }
 }
 
+/***************************************
+* tWiFiConnection::PrintInfo
+*
+* Prints the details of the connection to Serial.
+*
+*/
 
-#endif /* INC_WIFICONNECTION_H */
+void tWiFiConnection::PrintInfo() 
+{
+  // print the SSID of the network you're attached to:
+  Serial.print(F("SSID: "));
+  Serial.println(WiFi.SSID());
+
+  // print your WiFi shield's IP address:
+  IPAddress ip = WiFi.localIP();
+  Serial.print(F("IP Address: "));
+  Serial.println(ip);
+
+  // print the received signal strength:
+  long rssi = WiFi.RSSI();
+  Serial.print(F("Signal strength (RSSI):"));
+  Serial.print(rssi);
+  Serial.println(F(" dBm"));
+}
