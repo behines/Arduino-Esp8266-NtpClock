@@ -16,12 +16,14 @@
 
 class tNtp {
 public:
-  tNtp(IPAddress &IpAddress, unsigned int uiLocalPort);
+  //tNtp(IPAddress &IpAddress, unsigned int uiLocalPort);
+  tNtp(const char *sTimeServerHostNameOrIp, unsigned int uiLocalPort);
   void SendRequest();
   bool GetResponse();
   
 protected:
-  IPAddress &_IpAddress;
+  //IPAddress &_IpAddress;
+  const char *_sTimeServerHostNameOrIp;
   WiFiUDP    _Udp;  // A UDP instance to let us send and receive packets over UDP
   
   byte       _PacketBuffer[NTP_PACKET_SIZE]; //buffer to hold incoming and outgoing packets

@@ -13,8 +13,8 @@
 * 
 */
 
-tNtp::tNtp(IPAddress &IpAddress, unsigned int uiLocalPort) :
-  _IpAddress(IpAddress)
+tNtp::tNtp(const char *sTimeServerHostNameOrIp, unsigned int uiLocalPort) :
+  _sTimeServerHostNameOrIp(sTimeServerHostNameOrIp)
 {
   _Udp.begin(uiLocalPort);
 }
@@ -29,23 +29,25 @@ tNtp::tNtp(IPAddress &IpAddress, unsigned int uiLocalPort) :
 void tNtp::SendRequest() 
 {
   /*** Construct a NTP request ***/
-    // set all bytes in the buffer to 0
-    memset(_PacketBuffer, 0, NTP_PACKET_SIZE);
-    // Initialize values needed to form NTP request
-    _PacketBuffer[0] = 0b11100011;   // LI, Version, Mode
-    _PacketBuffer[1] = 0;            // Stratum, or type of clock
-    _PacketBuffer[2] = 6;            // Polling Interval
-    _PacketBuffer[3] = 0xEC;         // Peer Clock Precision
-    // 8 bytes of zero for Root Delay & Root Dispersion
-    _PacketBuffer[12]  = 49;
-    _PacketBuffer[13]  = 0x4E;
-    _PacketBuffer[14]  = 49;
-    _PacketBuffer[15]  = 52;
+  // set all bytes in the buffer to 0
+  memset(_PacketBuffer, 0, NTP_PACKET_SIZE);
+  // Initialize values needed to form NTP request
+  _PacketBuffer[0] = 0b11100011;   // LI, Version, Mode
+  _PacketBuffer[1] = 0;            // Stratum, or type of clock
+  _PacketBuffer[2] = 6;            // Polling Interval
+  _PacketBuffer[3] = 0xEC;         // Peer Clock Precision
+  // 8 bytes of zero for Root Delay & Root Dispersion
+  _PacketBuffer[12]  = 49;
+  _PacketBuffer[13]  = 0x4E;
+  _PacketBuffer[14]  = 49;
+  _PacketBuffer[15]  = 52;
 
   /*** Send the NTP request ***/
-    _Udp.beginPacket(_IpAddress, 123); //NTP requests are to port 123
-    _Udp.write(_PacketBuffer, NTP_PACKET_SIZE);
-    _Udp.endPacket();
+  //_Udp.beginPacket(_IpAddress, 123); //NTP requests are to port 123
+  _Udp.beginPacket(_sTimeServerHostNameOrIp, 123); //NTP requests are to port 123
+  
+  _Udp.write(_PacketBuffer, NTP_PACKET_SIZE);
+  _Udp.endPacket();
 }
 
 

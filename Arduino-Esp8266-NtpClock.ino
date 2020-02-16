@@ -20,7 +20,9 @@
 int ModuleLedPin =  2;
 int ModeLedPin   = 16;
 unsigned int localPort = 2390;           // local port to listen for UDP packets
-IPAddress timeServer(129, 6, 15, 28);    // time.nist.gov NTP server
+
+// Note - the tNtp class demans that this be constant for the life of the app
+char timeServer[] = "time.nist.gov";    // time.nist.gov NTP server
 
 
 /*****************************************
