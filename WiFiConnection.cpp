@@ -24,7 +24,11 @@ tWiFiConnection::tWiFiConnection(const char *sSsid, const char *sPassword, int i
   _iLedPin(iLedPin)
 {
   // Init the display pin as an output
-  if (iLedPin > 0)  pinMode(iLedPin, OUTPUT);
+  // The ESP8266 LED is active low, so write a 1 to turn it off at init
+  if (iLedPin > 0) {
+    pinMode(iLedPin, OUTPUT);
+    digitalWrite(_iLedPin, 1);
+  }
 
   _status = WL_IDLE_STATUS;
 }
@@ -82,6 +86,7 @@ bool tWiFiConnection::ConnectToRouter(int iNumTimesToTry)
   }
 
   Serial.println(F("\n*** Connected to wifi ***\n"));
+  PrintInfo();
 }
 
 
@@ -157,7 +162,7 @@ void tWiFiConnection::PrintInfo()
 
   // print the received signal strength:
   long rssi = WiFi.RSSI();
-  Serial.print(F("Signal strength (RSSI):"));
+  Serial.print(F("Signal strength (RSSI): "));
   Serial.print(rssi);
   Serial.println(F(" dBm"));
 }
