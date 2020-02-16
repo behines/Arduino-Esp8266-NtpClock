@@ -8,15 +8,59 @@
 #include "Ntp.h"
 
 
+/*************
+* This is kind of hokey.  We provide a GetExternalTime function for TimeLib, but it 
+* always just returns zero.  This will cause the Status flag to get updated to timeNeedsSync.
+* We will then notice that and take action, setting the time next time we hear what it is.
+*
+* The reason for this is that we want calls into tNtp's GetTime methods to be non-blocking.
+* So we want to initiate a time update, but not wait for it.
+*/
+
+time_t GetExternalTime_for_TimeLib() { return 0; }
+
+
 /*****************************************
 * tNtp Constructor
 * 
 */
 
-tNtp::tNtp(const char *sTimeServerHostNameOrIp, unsigned int uiLocalPort) :
+tNtp::tNtp(const char *sTimeServerHostNameOrIp, unsigned int uiLocalPort,
+           time_t tQueryIntervalInSeconds) :
+  _tQueryIntervalInSeconds(tQueryIntervalInSeconds),
   _sTimeServerHostNameOrIp(sTimeServerHostNameOrIp)
 {
   _Udp.begin(uiLocalPort);
+
+  // Set up time library
+  //setSyncInterval(tQueryIntervalInSeconds);
+  //setSyncProvider(&GetExternalTime_for_TimeLib);
+
+  _tNextQueryTime = 0;
+}
+
+
+/*****************************************
+* tNtp::GetUtcTime
+* 
+* Send a NTP request to the time server at the given address
+*/
+
+time_t tNtp::GetUtcTime()
+{
+  // If a new packet has been received, take note of it
+  _GetResponse();
+
+  if (_tCurTimeUtc >= _tNextQueryTime) {
+    // Don't blast packets if we don't hear back.  Wait at least
+    // this many seconds before sending another one.
+    _tNextQueryTime = _tCurTimeUtc + NTP_MIN_QUERY_INTERVAL_SECONDS; 
+    _SendRequest();
+  }
+
+  // Ask TimeLib for the time
+  _tCurTimeUtc = now();
+  return _tCurTimeUtc;
 }
 
 
@@ -26,7 +70,7 @@ tNtp::tNtp(const char *sTimeServerHostNameOrIp, unsigned int uiLocalPort) :
 * Send a NTP request to the time server at the given address
 */
 
-void tNtp::SendRequest() 
+void tNtp::_SendRequest() 
 {
   /*** Construct a NTP request ***/
   // set all bytes in the buffer to 0
@@ -63,11 +107,8 @@ void tNtp::SendRequest()
 * 
 */
 
-bool tNtp::GetResponse() 
+bool tNtp::_GetResponse() 
 {
-  // wait to see if a reply is available
-  delay(1000);
-  
   if (_Udp.parsePacket()) {
     Serial.println(F("packet received"));
     // We've received a packet, read the data from it
@@ -82,18 +123,25 @@ bool tNtp::GetResponse()
     // combine the four bytes (two words) into a long integer
     // this is NTP time (seconds since Jan 1 1900):
     unsigned long secsSince1900 = highWord << 16 | lowWord;
-    Serial.print(F("Seconds since Jan 1 1900 = "));
-    Serial.println(secsSince1900);
+    //Serial.print(F("Seconds since Jan 1 1900 = "));
+    //Serial.println(secsSince1900);
 
     // now convert NTP time into everyday time:
-    Serial.print(F("Unix time = "));
+    //Serial.print(F("Unix time = "));
     // Unix time starts on Jan 1 1970. In seconds, that's 2208988800:
     const unsigned long seventyYears = 2208988800UL;
     // subtract seventy years:
     unsigned long epoch = secsSince1900 - seventyYears;
     // print Unix time:
-    Serial.println(epoch);
+    //Serial.println(epoch);
 
+    // Inform the Time library
+    setTime(epoch);
+
+    // And advance the "next query time".  
+    _tNextQueryTime = epoch + _tQueryIntervalInSeconds;
+
+    #if 0
     // print the hour, minute and second:
     Serial.print(F("The UTC time is "));       // UTC is the time at Greenwich Meridian (GMT)
     Serial.print((epoch  % 86400L) / 3600); // print the hour (86400 equals secs per day)
@@ -109,7 +157,8 @@ bool tNtp::GetResponse()
       Serial.print('0');
     }
     Serial.println(epoch % 60); // print the second
-
+    #endif
+    
     return true;
   }
   

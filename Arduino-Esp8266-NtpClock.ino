@@ -1,3 +1,5 @@
+
+
 /***************
 * NTP Clock
 * 
@@ -10,19 +12,26 @@
 #include "WiFiConnection.h"
 #include "Ntp.h"
 
+#include <Time.h>
 
 /*****************************************
 * Constants
+*
+* Most are declared static so that their scope is limited to this file.
 */
 
-#define NTP_RETRY_INTERVAL_SECONDS (10)
+#define NTP_REFRESH_INTERVAL_SECONDS (300)
 
-int ModuleLedPin =  2;
-int ModeLedPin   = 16;
-unsigned int localPort = 2390;           // local port to listen for UDP packets
+static int ModuleLedPin =  2;
+static int ModeLedPin   = 16;
+static unsigned int localPort = 2390;           // local port to listen for UDP packets
 
-// Note - the tNtp class demans that this be constant for the life of the app
-char timeServer[] = "time.nist.gov";    // time.nist.gov NTP server
+// Note - the tNtp class demands that this be constant for the life of the app
+static const char ntpServerName[] = "us.pool.ntp.org";
+//static const char ntpServerName[] = "time.nist.gov";
+//static const char ntpServerName[] = "time-a.timefreq.bldrdoc.gov";
+//static const char ntpServerName[] = "time-b.timefreq.bldrdoc.gov";
+//static const char ntpServerName[] = "time-c.timefreq.bldrdoc.gov";
 
 
 /*****************************************
@@ -31,7 +40,7 @@ char timeServer[] = "time.nist.gov";    // time.nist.gov NTP server
 */
 
 tWiFiConnection WiFiConnection(NTP_SSID, NTP_PASSWD, ModuleLedPin);
-tNtp            NtpServer(timeServer, localPort);
+tNtp            NtpServer(ntpServerName, localPort, NTP_REFRESH_INTERVAL_SECONDS);
 
 
 /*****************************************
@@ -62,21 +71,19 @@ void setup()
 
 void loop()
 {
-  int i;
+  static time_t tNow;
+  static int    iLastSecondPrinted = -1;
+  static int    iThisSecond;
+  static char   sTimeStr[30];
+ 
+  tNow = NtpServer.GetUtcTime();
 
-  Serial.println(F("\nSending request to NTP server..."));  
-  NtpServer.SendRequest(); // send an NTP packet to a time server
-  
-  for (i=0; i<NTP_RETRY_INTERVAL_SECONDS; i++) {
-
-    // If we get an answer, break out.  Else try again
-    if (NtpServer.GetResponse())
-      break;
-
-    // Pause then try again
-    delay(1000);
+  iThisSecond = second(tNow);
+  if (iThisSecond != iLastSecondPrinted) {
+    iLastSecondPrinted = iThisSecond;
+    sprintf(sTimeStr, "%02d:%02d:%02d", hour(tNow), minute(tNow), iThisSecond);
+    Serial.println(sTimeStr);
   }
 
-  // Wait ten seconds before asking for the time again
-  delay(10000);
+  delay(100);
 }
