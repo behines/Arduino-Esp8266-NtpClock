@@ -61,9 +61,9 @@ void setup()
   Serial.println(F("Hello from NtpClock"));
 
   // Connect to the router.  0 means to try forever
-  //WiFiConnection.ConnectToRouter(0);
+  WiFiConnection.ConnectToRouter(0);
 
-  PrintAllSevenSegmentDigits();
+  //PrintAllSevenSegmentDigits();
 }
 
 
@@ -75,7 +75,6 @@ void setup()
 
 void loop()
 {
-  #if 0
   static time_t tNow, tNowLocal;
   static int    iLastSecondPrinted = -1;
   static int    iThisSecond;
@@ -91,6 +90,5 @@ void loop()
     sprintf(sTimeStr, "%02d:%02d:%02d", hour(tNowLocal), minute(tNowLocal), iThisSecond);
     Serial.println(sTimeStr);
   }
-  #endif
   delay(100);
 }
