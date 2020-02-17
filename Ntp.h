@@ -12,8 +12,7 @@
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 
-#include <Timezone.h>
-#include <Time.h>
+#include <TimeLib.h>
 
 
 #define NTP_MIN_QUERY_INTERVAL_SECONDS (10)

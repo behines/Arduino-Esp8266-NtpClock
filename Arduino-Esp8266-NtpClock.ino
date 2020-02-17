@@ -1,5 +1,3 @@
-
-
 /***************
 * NTP Clock
 * 
@@ -12,7 +10,9 @@
 #include "WiFiConnection.h"
 #include "Ntp.h"
 
-#include <Time.h>
+#include <TimeLib.h>
+#include "LocalTime.h"
+
 
 /*****************************************
 * Constants
@@ -41,6 +41,7 @@ static const char ntpServerName[] = "us.pool.ntp.org";
 
 tWiFiConnection WiFiConnection(NTP_SSID, NTP_PASSWD, ModuleLedPin);
 tNtp            NtpServer(ntpServerName, localPort, NTP_REFRESH_INTERVAL_SECONDS);
+tTimeZoneSet    TimeZoneSet;
 
 
 /*****************************************
@@ -71,17 +72,19 @@ void setup()
 
 void loop()
 {
-  static time_t tNow;
+  static time_t tNow, tNowLocal;
   static int    iLastSecondPrinted = -1;
   static int    iThisSecond;
   static char   sTimeStr[30];
+  static int    iTimeZone = 3;
  
-  tNow = NtpServer.GetUtcTime();
+  tNow      = NtpServer.GetUtcTime();
+  tNowLocal = TimeZoneSet.TimeZone(iTimeZone)->UtcToLocal(tNow);
 
-  iThisSecond = second(tNow);
+  iThisSecond = second(tNowLocal);
   if (iThisSecond != iLastSecondPrinted) {
     iLastSecondPrinted = iThisSecond;
-    sprintf(sTimeStr, "%02d:%02d:%02d", hour(tNow), minute(tNow), iThisSecond);
+    sprintf(sTimeStr, "%02d:%02d:%02d", hour(tNowLocal), minute(tNowLocal), iThisSecond);
     Serial.println(sTimeStr);
   }
 
