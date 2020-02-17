@@ -14,6 +14,12 @@
 #include "LocalTime.h"
 #include "SevenSegment.h"
 
+extern "C" {
+#define USE_US_TIMER 1
+#include "user_interface.h"
+void timerCallback(void *pArg);
+}
+
 
 /*****************************************
 * Constants
@@ -24,7 +30,7 @@
 #define NTP_REFRESH_INTERVAL_SECONDS (300)
 
 static int ModuleLedPin =  2;
-static int ModeLedPin   = 16;
+static int NodeLedPin   = 16;
 static unsigned int localPort = 2390;           // local port to listen for UDP packets
 
 // Note - the tNtp class demands that this be constant for the life of the app
@@ -43,8 +49,24 @@ static const char ntpServerName[] = "us.pool.ntp.org";
 tWiFiConnection WiFiConnection(NTP_SSID, NTP_PASSWD, ModuleLedPin);
 tNtp            NtpServer(ntpServerName, localPort, NTP_REFRESH_INTERVAL_SECONDS);
 tTimeZoneSet    TimeZoneSet;
+os_timer_t      MyTimer;
+int             iLastVal      = LOW;
+bool            bTickOccurred = false;
+  
+// start of timerCallback
+void timerCallback(void *pArg) {
+  bTickOccurred = ~bTickOccurred;
+  if (iLastVal == LOW) {
+    digitalWrite(NodeLedPin, HIGH);
+    iLastVal = HIGH;
+  } 
+  else {
+    digitalWrite(NodeLedPin, LOW);
+    iLastVal = LOW;
+  } 
+} // End of timerCallback
 
-
+  
 /*****************************************
 * setup() - Initialization code for the Arduino app
 *
@@ -60,10 +82,23 @@ void setup()
 
   Serial.println(F("Hello from NtpClock"));
 
+  pinMode(NodeLedPin, OUTPUT);
+
   // Connect to the router.  0 means to try forever
   WiFiConnection.ConnectToRouter(0);
 
   //PrintAllSevenSegmentDigits();
+  os_timer_disarm(&MyTimer);
+  os_timer_setfn(&MyTimer, &timerCallback, NULL);
+
+  // Arm the timer
+  // 250 is the fire time in ms
+  // 0 for once and 1 for repeating
+  os_timer_arm(&MyTimer, 250, true);
+
+  // This line was in one of the demos, but it seems to make the timer go 10x faste
+  // than I request.
+  // system_timer_reinit();
 }
 
 
@@ -87,7 +122,7 @@ void loop()
   iThisSecond = second(tNowLocal);
   if (iThisSecond != iLastSecondPrinted) {
     iLastSecondPrinted = iThisSecond;
-    sprintf(sTimeStr, "%02d:%02d:%02d", hour(tNowLocal), minute(tNowLocal), iThisSecond);
+    sprintf(sTimeStr, "%02d:%02d:%02d, %d", hour(tNowLocal), minute(tNowLocal), iThisSecond, bTickOccurred);
     Serial.println(sTimeStr);
   }
   delay(100);
