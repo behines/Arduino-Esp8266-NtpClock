@@ -10,6 +10,8 @@
 #include "WiFiConnection.h"
 #include "Ntp.h"
 
+#include <SPI.h>
+
 #include <TimeLib.h>
 #include "LocalTime.h"
 #include "SevenSegment.h"
@@ -51,11 +53,9 @@ tNtp            NtpServer(ntpServerName, localPort, NTP_REFRESH_INTERVAL_SECONDS
 tTimeZoneSet    TimeZoneSet;
 os_timer_t      MyTimer;
 int             iLastVal      = LOW;
-bool            bTickOccurred = false;
   
 // start of timerCallback
 void timerCallback(void *pArg) {
-  bTickOccurred = ~bTickOccurred;
   if (iLastVal == LOW) {
     digitalWrite(NodeLedPin, HIGH);
     iLastVal = HIGH;
@@ -80,10 +80,39 @@ void setup()
   Serial.begin(115200);
   while (!Serial) { }
 
-  Serial.println(F("Hello from NtpClock"));
+  Serial.println(F("\n\nHello from NtpClock"));
 
+  SPI.begin();
+  Serial.println(F("SPI Online\n"));
+
+  // Device wants MSB then LSB
+  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
+  SPI.setHwCs(true);  // Needed so that ESP8266 manages CS itself
+ 
   pinMode(NodeLedPin, OUTPUT);
 
+  //Serial.println(F("Reading Port Configuration Register"))
+
+  Serial.println(F("Leaving shutdown\n"));
+  // Config register bits: PIRTEBXS
+  SPI.write16(0x0401,true);
+
+  // Set brightness to 15 mA
+  Serial.println(F("Set brightness to 15 mA\n"));
+  SPI.write16(0x0205,true);
+
+  // Set number of digits to two.  Ths is the "Scan-Limit" register
+  Serial.println(F("Set Scan Limit to 2 digits\n"));
+  SPI.write16(0x0301,true);
+  
+  // The recommended value of RSET (56K) also sets the peak current to 40mA, which makes the
+  // segment current adjustable from 2.5mA to 37.5mA in 2.5mA steps.  We want to peak at 30 mA.
+  // Probably should choose RSET = 75K.
+
+  Serial.println(F("Display Test\n"));
+  SPI.write16(0x0701,true);
+  
+  
   // Connect to the router.  0 means to try forever
   WiFiConnection.ConnectToRouter(0);
 
@@ -115,6 +144,8 @@ void loop()
   static int    iThisSecond;
   static char   sTimeStr[30];
   static int    iTimeZone = 3;
+
+  static int    iBrightness = 1;
  
   tNow      = NtpServer.GetUtcTime();
   tNowLocal = TimeZoneSet.TimeZone(iTimeZone)->UtcToLocal(tNow);
@@ -122,8 +153,11 @@ void loop()
   iThisSecond = second(tNowLocal);
   if (iThisSecond != iLastSecondPrinted) {
     iLastSecondPrinted = iThisSecond;
-    sprintf(sTimeStr, "%02d:%02d:%02d, %d", hour(tNowLocal), minute(tNowLocal), iThisSecond, bTickOccurred);
+    sprintf(sTimeStr, "%02d:%02d:%02d", hour(tNowLocal), minute(tNowLocal), iThisSecond);
     Serial.println(sTimeStr);
+
+    if (++iBrightness > 11) iBrightness = 1;
+    SPI.write16(0x0200+iBrightness,true);
   }
   delay(100);
 }
