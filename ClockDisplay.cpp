@@ -99,10 +99,10 @@ tClockDisplay::tClockDisplay(tMax6954 &Max) :
   int i;
   
   for (i=0; i<CLOCK_NUM_DIGITS; i++)
-    _Digits[i] = 0;
+    Digit[i] = 0;
   
     for (i=0; i<CLOCK_NUM_ANNUNCIATORS; i++)
-    _AnnunciatorValue[i] = 0;
+    Annunciator[i] = 0;
 }
 
 
@@ -115,14 +115,14 @@ tClockDisplay::tClockDisplay(tMax6954 &Max) :
 
 void tClockDisplay::Update()
 {
-  tSegmentPattern *pSegs;
-  int i;
+  const tSegmentPattern *pSegs;
+  uint8_t i;
 
   // Zero out the output digits
   for (i=0; i<MAX6954_NUM_DIGITS; i++)  _MaxDigits[i] = 0;
 
   for (i=0; i<CLOCK_NUM_DIGITS; i++) {
-    pSegs = Encode7segments(Digit[i]);
+    pSegs = Encode7Segments(Digit[i]);
     
     if (pSegs->a)  _LightUpSegment(i,0);
     if (pSegs->b)  _LightUpSegment(i,1);
@@ -153,13 +153,13 @@ void tClockDisplay::Update()
 
 void tClockDisplay::_LightUpSegment(int ClockDigit, int Segment)
 {
-  uint8_t OutputNum  = _ClockDigitToOutputNum(ClockDigit, Segment);
-  uint8_t CathodeNum = _ClockDigitToCathodeNum(ClockDigit, Segment);
+  uint8_t OutputNum  = _ClockDigitToOutputNum[ClockDigit][Segment];
+  uint8_t CathodeNum = _ClockDigitToCathodeNum[ClockDigit][Segment];
 
   // If it's a non-existent segment (e.g. for a '0' in the first digit), bail out
   if (OutputNum == 0  ||  CathodeNum == 0)  return;
 
-  _TurnOnMaxSegment(uint8_t OutputNum, uint8_t CathodeNum);
+  _TurnOnMaxSegment(OutputNum, CathodeNum);
 }
 
 
@@ -168,12 +168,12 @@ void tClockDisplay::_LightUpSegment(int ClockDigit, int Segment)
 * 
 */
 
-void tClockDisplay::_LightUpAnnunciator(CLOCK_ANNUNCIATOR iAnnunciator)
+void tClockDisplay::_LightUpAnnunciator(int iAnnunciator)
 {
-  uint8_t OutputNum  = _AnnunciatorToOutputNum(iAnnunciator);
-  uint8_t CathodeNum = _AnnunciatorToCathodeNum(iAnnunciator);
+  uint8_t OutputNum  = _AnnunciatorToOutputNum[iAnnunciator];
+  uint8_t CathodeNum = _AnnunciatorToCathodeNum[iAnnunciator];
 
-  _TurnOnMaxSegment(uint8_t OutputNum, uint8_t CathodeNum);
+  _TurnOnMaxSegment(OutputNum, CathodeNum);
 }
 
 
@@ -192,5 +192,5 @@ void tClockDisplay::_TurnOnMaxSegment(uint8_t OutputNum, uint8_t CathodeNum)
   if (CathodeNum == 1) MaxDigitNum += 2;
 
   // Turn on the bit
-  _MaxDigit[MaxDigitNum] |= _MaxBitValueFromOutputNum[OutputNum];
+  _MaxDigits[MaxDigitNum] |= _MaxBitValueFromOutputNum[OutputNum];
 }

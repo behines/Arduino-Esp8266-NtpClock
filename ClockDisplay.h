@@ -27,7 +27,7 @@
 #define MAX6954_NUM_DIGITS (4)
 
 // These are indices into the AnnunciatorToOutputNum array
-typedef enum 
+typedef enum {
   CLOCK_ANNUNCIATOR_AM, 
   CLOCK_ANNUNCIATOR_PM, 
   CLOCK_ANNUNCIATOR_ALARM,
@@ -37,17 +37,18 @@ typedef enum
 
 
 class tClockDisplay {
+public:
   tClockDisplay(tMax6954 &Max);
 
   // These can be poked from outside.  When done poking, call UpdateDisplay()
   char Digit[4];   // This should be an ASCII value, not a number
   bool Annunciator[CLOCK_NUM_ANNUNCIATORS];
 
-  void UpdateDisplay();
+  void Update();
 
 protected:
   void _LightUpSegment(int ClockDigit, int Segment);
-  void _LightUpAnnunciator(CLOCK_ANNUNCIATOR iAnnunciator);
+  void _LightUpAnnunciator(int iAnnunciator);
   void _TurnOnMaxSegment(uint8_t OutputNum, uint8_t CathodeNum);;
 
   tMax6954 &_Max;
@@ -55,14 +56,13 @@ protected:
   // The segment maps we'll be outputting.  Making them a member just keeps from having to pass them around
   uint8_t _MaxDigits[MAX6954_NUM_DIGITS];  
 
-  static const _MaxDigitNumFromOutputNum[];
-  static const _MaxBitValueFromOutputNum[];
+  static const uint8_t _MaxDigitNumFromOutputNum[];
+  static const uint8_t _MaxBitValueFromOutputNum[];
 
-  static const _ClockDigitToOutputNum[CLOCK_NUM_DIGITS][DIGIT_NUM_SEGMENTS];
-  static const _ClockDigitToCathodeNum[CLOCK_NUM_DIGITS][DIGIT_NUM_SEGMENTS];
-  static const _AnnunciatorToOutputNum[CLOCK_NUM_ANNUNCIATORS];
-  static const _AnnunciatorToCathodeNum[CLOCK_NUM_ANNUNCIATORS];
+  static const uint8_t _ClockDigitToOutputNum[CLOCK_NUM_DIGITS][DIGIT_NUM_SEGMENTS];
+  static const uint8_t _ClockDigitToCathodeNum[CLOCK_NUM_DIGITS][DIGIT_NUM_SEGMENTS];
+  static const uint8_t _AnnunciatorToOutputNum[CLOCK_NUM_ANNUNCIATORS];
+  static const uint8_t _AnnunciatorToCathodeNum[CLOCK_NUM_ANNUNCIATORS];
 };
 
 #endif   /* CLOCK_DISPLAY_H */
-

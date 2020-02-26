@@ -123,16 +123,25 @@
 
 // Define a bitfield structure to hold the segment patterns for each digit
 class tMax6954 {
+public:
   tMax6954();
   void _SetupSPI();
-  void Init();
+  void Init(uint8_t NumDigits);
 
   void WriteCmd(uint8_t Register, uint8_t Data);
   void DisplayTest(bool bEnable);
   void SetScanLimit(uint8_t NumDigits);
   void WriteConfig(uint8_t u8Flags);
 
+  void NoOp();
+  void SetBrightness(uint8_t uiBrightness);
+  void SetDecodeMode(uint8_t uiDecodeFlags);
+  void SetDigitTypes(uint8_t DigitTypes76, uint8_t DigitTypes54,
+                     uint8_t DigitTypes32, uint8_t DigitTypes10);
+  void WriteDigit(uint8_t u8Digit, uint8_t u8Planes, uint8_t u8Value);
 
+protected:
+  uint8_t _u8ConfigRegisterValue;
 };
 
 

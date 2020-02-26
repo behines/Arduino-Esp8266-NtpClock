@@ -15,7 +15,7 @@
 #include <TimeLib.h>
 #include "LocalTime.h"
 #include "Max6954.h"
-#include "ClockDisplayh"
+#include "ClockDisplay.h"
 
 extern "C" {
 #define USE_US_TIMER 1
@@ -87,7 +87,8 @@ void setup()
  
   pinMode(NodeLedPin, OUTPUT);
 
-  LedDriver.Init();
+  // Init with 2 digit pairs
+  LedDriver.Init(2);
   
   // Connect to the router.  0 means to try forever
   WiFiConnection.ConnectToRouter(0);

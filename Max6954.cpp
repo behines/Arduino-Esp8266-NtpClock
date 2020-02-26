@@ -70,8 +70,8 @@ void tMax6954::Init(uint8_t NumDigits)
 
   // Configure for two 16-segment unencoded digits, aka two 7-segment digit pairs, aka
   // four 7-segment monocolor digits.
-  SetDigitType(MAX6954_DIGIT_TYPE_16_AND_16, MAX6954_DIGIT_TYPE_16_AND_16,
-               MAX6954_DIGIT_TYPE_16_AND_16, MAX6954_DIGIT_TYPE_16_AND_16);
+  SetDigitTypes(MAX6954_DIGIT_TYPE_16_AND_16, MAX6954_DIGIT_TYPE_16_AND_16,
+                MAX6954_DIGIT_TYPE_16_AND_16, MAX6954_DIGIT_TYPE_16_AND_16);
   SetDecodeMode(0); // No decoding for all 8 digit pairs
   
   // The recommended value of RSET (56K) also sets the peak current to 40mA, which makes the
@@ -93,10 +93,10 @@ void tMax6954::Init(uint8_t NumDigits)
 * INPUTS:
 *   
 */
-void tMax6954::WriteCmd(uint8_t Register, uint8_t Data);
+void tMax6954::WriteCmd(uint8_t Register, uint8_t Data)
 {
-  uin16_t cmd = Register;
-  cmd         = cmd << 8 | Data;
+  uint16_t cmd = Register;
+  cmd          = cmd << 8 | Data;
 
   SPI.write16(cmd);
 }
@@ -157,21 +157,6 @@ void tMax6954::SetBrightness(uint8_t uiBrightness)
 
 
 /***************************************
-* tMax6954::SetDecodeMode 
-*
-* Goes from 0 => 1/16 to 14 => 15/16.  A value of 15 also gives 15/16.
-*
-* INPUT:
-*   A value from 0 to 15
-*/
-
-void tMax6954::SetDecodeMode(uint8_t uiBrightness)
-{
-  WriteCmd(MAX6954_REG_DecodeMode, uiBrightness);
-}
-
-
-/***************************************
 * tMax6954::NoOp 
 *
 * Does nothing, but is used as part of the register read process to cause 
@@ -223,7 +208,7 @@ void tMax6954::SetDigitTypes(uint8_t DigitTypes76, uint8_t DigitTypes54,
                           DigitTypes54 << 4 |
                           DigitTypes32 << 2 |
                           DigitTypes10;
-  WriteCmd(MAX6954_REG_DigitType,);
+  WriteCmd(MAX6954_REG_DigitType, DigitTypeCode);
 }
 
 
@@ -262,12 +247,10 @@ void tMax6954::SetDecodeMode(uint8_t u8DecodeFlags)
 *   8-bit value  (Not all bits meaningful if decoding is in use)
 */
 
-void tMax6954::WriteDigit(uint8_t u8Digit, uint8_t u8Planes uint8_t u8Value)
+void tMax6954::WriteDigit(uint8_t u8Digit, uint8_t u8Planes, uint8_t u8Value)
 {
   // Compute the register number
   uint8_t RegNum = u8Planes + u8Digit;
 
   WriteCmd(RegNum, u8Value);
 }
-
-
