@@ -35,3 +35,6 @@ ssidPrivate..h
 *.out
 *.app
 ssidPrivate.h
+Arduino-Esp8266-NtpClock.DisplayTestWorks
+Right.code-workspace
+Left.code-workspace

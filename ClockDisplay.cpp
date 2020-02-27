@@ -99,7 +99,7 @@ tClockDisplay::tClockDisplay(tMax6954 &Max) :
   int i;
   
   for (i=0; i<CLOCK_NUM_DIGITS; i++)
-    Digit[i] = 0;
+    Digit[i] = ' ';
   
     for (i=0; i<CLOCK_NUM_ANNUNCIATORS; i++)
     Annunciator[i] = 0;
@@ -116,14 +116,23 @@ tClockDisplay::tClockDisplay(tMax6954 &Max) :
 void tClockDisplay::Update()
 {
   const tSegmentPattern *pSegs;
-  uint8_t i;
+  uint8_t i, iWhichDigit;
 
   // Zero out the output digits
   for (i=0; i<MAX6954_NUM_DIGITS; i++)  _MaxDigits[i] = 0;
 
   for (i=0; i<CLOCK_NUM_DIGITS; i++) {
+   
     pSegs = Encode7Segments(Digit[i]);
-    
+
+    if (pSegs == NULL) {
+      Serial.print(F("tClockDisplay::Update: Unknown character: "));
+      Serial.print((int) Digit[i]);
+      Serial.print(" for digit ");
+      Serial.println(i);
+      continue;
+    }
+
     if (pSegs->a)  _LightUpSegment(i,0);
     if (pSegs->b)  _LightUpSegment(i,1);
     if (pSegs->c)  _LightUpSegment(i,2);
@@ -132,7 +141,7 @@ void tClockDisplay::Update()
     if (pSegs->f)  _LightUpSegment(i,5);
     if (pSegs->g)  _LightUpSegment(i,6);
   }
-  
+
   // Do the annunciators
   for (i=0; i<CLOCK_NUM_ANNUNCIATORS; i++) {
     if (Annunciator[i])  _LightUpAnnunciator(i);
@@ -140,7 +149,9 @@ void tClockDisplay::Update()
 
   // Output the digits
   for (i=0; i<MAX6954_NUM_DIGITS; i++)  {
-    _Max.WriteDigit(i, MAX6954_REG_PLANE0 | MAX6954_REG_PLANE1, _MaxDigits[i]);
+    iWhichDigit = i;
+    if (i == 1 || i == 3) iWhichDigit += 8;
+    _Max.WriteDigit(iWhichDigit, MAX6954_REG_PLANE0 | MAX6954_REG_PLANE1, _MaxDigits[i]);
   }
 }
 

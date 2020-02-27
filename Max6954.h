@@ -9,6 +9,8 @@
 #ifndef MAX6954_H
 #define MAX6954_H
 
+#define MAX_CS_GPIO (5)
+
 #include <Arduino.h>
 
 

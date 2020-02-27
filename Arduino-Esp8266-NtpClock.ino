@@ -87,9 +87,6 @@ void setup()
  
   pinMode(NodeLedPin, OUTPUT);
 
-  // Init with 2 digit pairs
-  LedDriver.Init(2);
-  
   // Connect to the router.  0 means to try forever
   WiFiConnection.ConnectToRouter(0);
 
@@ -105,6 +102,9 @@ void setup()
   // This line was in one of the demos, but it seems to make the timer go 10x faste
   // than I request.
   // system_timer_reinit();
+
+  // Init with 2 digit pairs
+  LedDriver.Init(2);
 }
 
 
@@ -133,16 +133,17 @@ void loop()
     sprintf(sTimeStr, "%02d:%02d:%02d", hour(tNowLocal), minute(tNowLocal), iThisSecond);
     Serial.println(sTimeStr);
 
-    Display.Digit[0] = sTimeStr[0];
-    Display.Digit[1] = sTimeStr[1];
-    Display.Digit[2] = sTimeStr[3];
-    Display.Digit[3] = sTimeStr[4];
+    Display.Digit[0] = sTimeStr[3];
+    Display.Digit[1] = sTimeStr[4];
+    Display.Digit[2] = sTimeStr[6];
+    Display.Digit[3] = sTimeStr[7];
 
     Display.Annunciator[CLOCK_ANNUNCIATOR_COLON] = true;
+    
     Display.Update();
     
     if (++iBrightness > 11) iBrightness = 1;
     SPI.write16(0x0200+iBrightness,true);
   }
-  delay(100);
+  delay(1000);
 }

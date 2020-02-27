@@ -34,13 +34,18 @@ tMax6954::tMax6954()
 
 void tMax6954::_SetupSPI()
 {
+  pinMode(MAX_CS_GPIO, OUTPUT);
+  digitalWrite(MAX_CS_GPIO, HIGH);
   SPI.begin();
 
   // Device wants MSB then LSB
-  SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
-  SPI.setHwCs(true);  // Needed so that ESP8266 manages CS itself
+  SPI.setBitOrder(MSBFIRST);
+  SPI.setDataMode(SPI_MODE3);
+  SPI.setFrequency(1000000);
+  //SPI.setHwCs(true);
+  //SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
 
-  Serial.println(F("SPI for Mx 6954 Online\n"));
+  Serial.println(F("SPI for MAX6954 Online\n"));
 }
 
 
@@ -53,6 +58,7 @@ void tMax6954::_SetupSPI()
 
 void tMax6954::Init(uint8_t NumDigits)
 {
+  int i;
   _SetupSPI();
 
   //Serial.println(F("Reading Port Configuration Register"))
@@ -80,10 +86,13 @@ void tMax6954::Init(uint8_t NumDigits)
   // So for my device, we choose RSET = 40/22.5 * 56K = 100K
 
   Serial.print(F("Display Test..."));
+  for (i=0; i< 3; i++) {
   DisplayTest(true);
   delay(2000);
   DisplayTest(false);
-  Serial.println(F("Done."));
+  delay(2000);
+  }
+  Serial.print(F("Done"));
 }
 
 
@@ -98,7 +107,15 @@ void tMax6954::WriteCmd(uint8_t Register, uint8_t Data)
   uint16_t cmd = Register;
   cmd          = cmd << 8 | Data;
 
-  SPI.write16(cmd);
+  digitalWrite(MAX_CS_GPIO, LOW);
+  //SPI.write16(cmd);
+  //SPI.transfer16(cmd);
+  SPI.transfer(Register);
+  SPI.transfer(Data);
+  digitalWrite(MAX_CS_GPIO, HIGH);
+  
+  Serial.print("0x");
+  Serial.println(cmd,HEX);
 }
 
 
@@ -251,6 +268,6 @@ void tMax6954::WriteDigit(uint8_t u8Digit, uint8_t u8Planes, uint8_t u8Value)
 {
   // Compute the register number
   uint8_t RegNum = u8Planes + u8Digit;
-
+  
   WriteCmd(RegNum, u8Value);
 }

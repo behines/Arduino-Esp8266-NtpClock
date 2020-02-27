@@ -70,11 +70,16 @@ const tSegmentPattern SegmentPatterns[] = {
   { 1, 1, 0, 1, 1, 0, 1, 0 }   // Z (same as 2)
 };
 
+const tSegmentPattern Blank = { 0, 0, 0, 0, 0, 0, 0, 0 };
+
 const tSegmentPattern *Encode7Segments(char cAscii)
 {
   // Convert lower case to upper
   if (cAscii > 90) cAscii -= 32;
 
+  // Space is a special case
+  if (cAscii == 32) return &Blank;
+  
   // Unknown characters
   if (cAscii < 48 || cAscii > 90)  return NULL;
 
