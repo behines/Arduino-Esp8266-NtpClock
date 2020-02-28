@@ -9,9 +9,20 @@
 #ifndef MAX6954_H
 #define MAX6954_H
 
-#define MAX_CS_GPIO (5)
+// D1 == GPIO5 is our CS
+#define MAX_CS_GPIO    (5)
+
+// D5 == GPIO14 is our SCLK
+#define MAX_SCLK_GPIO  (14)
+
+// D6 == GPIO12 is our MISO
+#define MAX_SDIN_GPIO  (12)
+
+// D7 == GPIO13 is our MOSI
+#define MAX_SDOUT_GPIO (13)
 
 #include <Arduino.h>
+#include "MaximBitBangSpi.h"
 
 
 /***********************************
@@ -131,6 +142,7 @@ public:
   void Init(uint8_t NumDigits);
 
   void WriteCmd(uint8_t Register, uint8_t Data);
+  uint8_t ReadRegister(uint8_t Register);
   void DisplayTest(bool bEnable);
   void SetScanLimit(uint8_t NumDigits);
   void WriteConfig(uint8_t u8Flags);
@@ -144,6 +156,8 @@ public:
 
 protected:
   uint8_t _u8ConfigRegisterValue;
+
+  tMaximBitBangSpi MySpi;
 };
 
 

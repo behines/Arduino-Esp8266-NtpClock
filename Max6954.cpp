@@ -32,8 +32,11 @@ tMax6954::tMax6954()
 *   
 */
 
-void tMax6954::_SetupSPI()
+void tMax6954::_SetupSPI() 
 {
+  MySpi = tMaximBitBangSpi(MAX_SCLK_GPIO, MAX_SDIN_GPIO, MAX_SDOUT_GPIO, MAX_CS_GPIO);
+  
+  #if 0
   pinMode(MAX_CS_GPIO, OUTPUT);
   digitalWrite(MAX_CS_GPIO, HIGH);
   SPI.begin();
@@ -46,6 +49,7 @@ void tMax6954::_SetupSPI()
   //SPI.beginTransaction(SPISettings(1000000, MSBFIRST, SPI_MODE0));
 
   Serial.println(F("SPI for MAX6954 Online\n"));
+  #endif
 }
 
 
@@ -59,6 +63,8 @@ void tMax6954::_SetupSPI()
 void tMax6954::Init(uint8_t NumDigits)
 {
   int i;
+  uint8_t bright;
+   
   _SetupSPI();
 
   //Serial.println(F("Reading Port Configuration Register"))
@@ -93,6 +99,12 @@ void tMax6954::Init(uint8_t NumDigits)
   delay(2000);
   }
   Serial.print(F("Done"));
+
+  Serial.print(F("Reading brightness... "));
+  bright = ReadRegister(MAX6954_REG_GlobalIntensity);
+  Serial.println(bright);
+  
+  Serial.print(F("Done"));
 }
 
 
@@ -107,15 +119,54 @@ void tMax6954::WriteCmd(uint8_t Register, uint8_t Data)
   uint16_t cmd = Register;
   cmd          = cmd << 8 | Data;
 
+  MySpi.Write16(cmd);
+  #if 0
   digitalWrite(MAX_CS_GPIO, LOW);
   //SPI.write16(cmd);
   //SPI.transfer16(cmd);
   SPI.transfer(Register);
   SPI.transfer(Data);
   digitalWrite(MAX_CS_GPIO, HIGH);
+
+  // Mode3 SPI has left the clock high.  But now as per the MAX spec,
+  // drive CLK low
+  digitalWrite(MAX_SCLK_GPIO, LOW);
+  #endif
   
   Serial.print("0x");
   Serial.println(cmd,HEX);
+}
+
+
+/***************************************
+* tMax6954::ReadCmd 
+*
+* INPUTS:
+*   
+*/
+uint8_t tMax6954::ReadRegister(uint8_t Register)
+{
+  return MySpi.ReadReg(Register);
+
+  #if 0
+  uint8_t u8Result;
+  digitalWrite(MAX_CS_GPIO, LOW);
+
+  SPI.transfer(Register | 0x80);  // 0x80 indicates read
+  SPI.transfer(0);                // 8 bits of dummy data
+  
+  digitalWrite(MAX_CS_GPIO, HIGH); 
+
+  // Now per the datasheet, issue another read or write command, and read 16 bits
+  digitalWrite(MAX_CS_GPIO, LOW);
+
+  // Per the data sheet, the second 8 bits are the register value
+  SPI.transfer(MAX6954_REG_NoOp);
+  u8Result = SPI.transfer(0);                // 8 bits of dummy data
+  
+  digitalWrite(MAX_CS_GPIO, HIGH); 
+  return u8Result;
+  #endif
 }
 
 
