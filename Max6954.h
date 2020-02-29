@@ -115,10 +115,10 @@
 * Register bit definitions
 */
 
-#define MAX6954_CFG_SHUTDOWN_MODE              (0x00)
-//#define MAX6954_CFG_X                        (0x01)   // Not used
-#define MAX6954_CFG_BLINKRATE_FAST             (0x02)
-#define MAX6954_CFG_GLOBALBLINK_ENABLE         (0x04)
+#define MAX6954_CFG_SHUTDOWN_MODE              (0x01)   // Note that the device is shut down if this bit is zero.  Must set to 1 to operate
+//#define MAX6954_CFG_X                        (0x02)   // Not used
+#define MAX6954_CFG_BLINKRATE_FAST             (0x04)
+#define MAX6954_CFG_GLOBALBLINK_ENABLE         (0x08)
 #define MAX6954_CFG_GLOBALBLINK_TIMING_RESET   (0x10)
 #define MAX6954_CFG_GLOBAL_CLEAR_DIGIT_DATA    (0x20)
 #define MAX6954_CFG_USE_INDIVIDUAL_INTENSITIES (0x40)

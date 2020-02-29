@@ -13,7 +13,7 @@
 
 #include <Arduino.h>
 
-#define MAXIM_LOGIC_DELAY delayMicroseconds(1)
+#define MAXIM_LOGIC_DELAY delayMicroseconds(5)
 
 
 class tMaximBitBangSpi {

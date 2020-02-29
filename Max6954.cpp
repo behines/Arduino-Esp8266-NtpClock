@@ -67,14 +67,23 @@ void tMax6954::Init(uint8_t NumDigits)
    
   _SetupSPI();
 
-  //Serial.println(F("Reading Port Configuration Register"))
-
   Serial.println(F("Leaving shutdown, clearing digits\n"));
-  WriteConfig(MAX6954_CFG_GLOBAL_CLEAR_DIGIT_DATA);
+  WriteConfig(MAX6954_CFG_GLOBAL_CLEAR_DIGIT_DATA | MAX6954_CFG_SHUTDOWN_MODE);
+
+  Serial.print(F("Display Test..."));
+  for (i=0; i< 1; i++) {
+  DisplayTest(true);
+  delay(2000);
+  DisplayTest(false);
+  delay(2000);
+  }
+  Serial.println(F("Done"));
+
+  //Serial.println(F("Reading Port Configuration Register"))
 
   // Set brightness to 50%
   Serial.println(F("Set brightness to 50%\n"));
-  SetBrightness(7);
+  SetBrightness(10);
 
   // Set number of digits to two.  Ths is the "Scan-Limit" register
   Serial.println(F("Set Scan Limit to 2 digits\n"));
@@ -91,20 +100,11 @@ void tMax6954::Init(uint8_t NumDigits)
   // device, at 50% duty cycle, We want to peak at 22.5 mA.
   // So for my device, we choose RSET = 40/22.5 * 56K = 100K
 
-  Serial.print(F("Display Test..."));
-  for (i=0; i< 3; i++) {
-  DisplayTest(true);
-  delay(2000);
-  DisplayTest(false);
-  delay(2000);
-  }
-  Serial.print(F("Done"));
-
   Serial.print(F("Reading brightness... "));
   bright = ReadRegister(MAX6954_REG_GlobalIntensity);
   Serial.println(bright);
   
-  Serial.print(F("Done"));
+  Serial.println(F("Done"));
 }
 
 

@@ -47,7 +47,7 @@
 */
 
 const uint8_t tClockDisplay::_MaxDigitNumFromOutputNum[19] =
-   { 0,0,0,0,0,     1,   1,   1,   1,   1,   1,      2,   2,   2,   2,   2,   2,   2,   2 };
+   { 0,0,0,0,0,     1,   1,   1,   1,   1,   1,      3,   3,   3,   3,   3,   3,   3,   3 };
 const uint8_t tClockDisplay::_MaxBitValueFromOutputNum[19] = 
    { 0,0,0,0,0,  0x10,0x08,0x80,0x04,0x02,0x01,   0x40,0x20,0x10,0x08,0x04,0x02,0x01,0x80 };
 
@@ -124,7 +124,7 @@ void tClockDisplay::Update()
   for (i=0; i<CLOCK_NUM_DIGITS; i++) {
    
     pSegs = Encode7Segments(Digit[i]);
-
+    
     if (pSegs == NULL) {
       Serial.print(F("tClockDisplay::Update: Unknown character: "));
       Serial.print((int) Digit[i]);
@@ -149,8 +149,7 @@ void tClockDisplay::Update()
 
   // Output the digits
   for (i=0; i<MAX6954_NUM_DIGITS; i++)  {
-    iWhichDigit = i;
-    if (i == 1 || i == 3) iWhichDigit += 8;
+     iWhichDigit = (i==0) ? 0 : (i==1) ? 1 : (i==2) ? 8 : 9;
     _Max.WriteDigit(iWhichDigit, MAX6954_REG_PLANE0 | MAX6954_REG_PLANE1, _MaxDigits[i]);
   }
 }
@@ -169,6 +168,15 @@ void tClockDisplay::_LightUpSegment(int ClockDigit, int Segment)
 
   // If it's a non-existent segment (e.g. for a '0' in the first digit), bail out
   if (OutputNum == 0  ||  CathodeNum == 0)  return;
+
+  Serial.print("LightUpSeg: Digit ");
+  Serial.print(ClockDigit);
+  Serial.print(" Seg ");
+  Serial.print(Segment);
+  Serial.print("->  Output ");
+  Serial.print(OutputNum);
+  Serial.print("  Cathode ");
+  Serial.println(CathodeNum);
 
   _TurnOnMaxSegment(OutputNum, CathodeNum);
 }
@@ -200,7 +208,7 @@ void tClockDisplay::_TurnOnMaxSegment(uint8_t OutputNum, uint8_t CathodeNum)
   // Figure out the Max digit number.  Cathode 1 is Max digits 0 and 1.
   // Cathode 2 is Max digits 2 and 3.
   uint8_t MaxDigitNum = _MaxDigitNumFromOutputNum[OutputNum] - 1;
-  if (CathodeNum == 1) MaxDigitNum += 2;
+  if (CathodeNum == 2) MaxDigitNum += 1;
 
   // Turn on the bit
   _MaxDigits[MaxDigitNum] |= _MaxBitValueFromOutputNum[OutputNum];

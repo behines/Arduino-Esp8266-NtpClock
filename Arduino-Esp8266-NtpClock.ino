@@ -116,6 +116,8 @@ void setup()
 
 void loop()
 {
+  static uint8_t bit = 1;
+  
   static time_t tNow, tNowLocal;
   static int    iLastSecondPrinted = -1;
   static int    iThisSecond;
@@ -138,12 +140,28 @@ void loop()
     Display.Digit[2] = sTimeStr[6];
     Display.Digit[3] = sTimeStr[7];
 
-    Display.Annunciator[CLOCK_ANNUNCIATOR_COLON] = true;
+    //Display.Annunciator[CLOCK_ANNUNCIATOR_COLON] = true;
     
     Display.Update();
-    
+
     if (++iBrightness > 11) iBrightness = 1;
-    SPI.write16(0x0200+iBrightness,true);
+    //LedDriver.SetBrightness(iBrightness);
+
+
+
+    //Serial.print  ("Config Reg = 0x");
+    //Serial.println(LedDriver.ReadRegister(4), HEX);
+    //Serial.print  ("Brightness Reg = ");
+    //Serial.println(LedDriver.ReadRegister(2));
+
+    // Keep rewriting config
+    //LedDriver.WriteConfig(MAX6954_CFG_SHUTDOWN_MODE);
+
+    //Serial.print("Writing Digit 9 = 0x");
+    //Serial.println(bit,HEX);
+    //LedDriver.WriteDigit(9, MAX6954_REG_PLANE0 | MAX6954_REG_PLANE1, bit);
+    //if (bit & 0x80) bit = 1;
+    //else            bit = bit << 1;
   }
-  delay(1000);
+  delay(50000);
 }
