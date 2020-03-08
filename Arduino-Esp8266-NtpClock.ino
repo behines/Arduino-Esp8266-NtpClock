@@ -51,8 +51,8 @@ static const char ntpServerName[] = "us.pool.ntp.org";
 
 tMax6954        LedDriver;
 tClockDisplay   Display(LedDriver);
-tWiFiConnection WiFiConnection(NTP_SSID, NTP_PASSWD, ModuleLedPin);
-tNtp            NtpServer(ntpServerName, localPort, NTP_REFRESH_INTERVAL_SECONDS);
+//tWiFiConnection WiFiConnection(NTP_SSID, NTP_PASSWD, ModuleLedPin);
+//tNtp            NtpServer(ntpServerName, localPort, NTP_REFRESH_INTERVAL_SECONDS);
 tTimeZoneSet    TimeZoneSet;
 os_timer_t      MyTimer;
 int             iLastVal      = LOW;
@@ -88,7 +88,8 @@ void setup()
   pinMode(NodeLedPin, OUTPUT);
 
   // Connect to the router.  0 means to try forever
-  WiFiConnection.ConnectToRouter(0);
+  // WiFiConnection.ConnectToRouter(0);
+  WiFi.mode(WIFI_OFF);
 
   //PrintAllSevenSegmentDigits();
   os_timer_disarm(&MyTimer);
@@ -116,7 +117,8 @@ void setup()
 
 void loop()
 {
-  static uint8_t bit = 1;
+  static char               c = '0';
+  static CLOCK_ANNUNCIATOR ca = CLOCK_ANNUNCIATOR_AM;
   
   static time_t tNow, tNowLocal;
   static int    iLastSecondPrinted = -1;
@@ -126,20 +128,33 @@ void loop()
 
   static int    iBrightness = 1;
  
-  tNow      = NtpServer.GetUtcTime();
+  tNow      = 0; //NtpServer.GetUtcTime();
   tNowLocal = TimeZoneSet.TimeZone(iTimeZone)->UtcToLocal(tNow);
 
   iThisSecond = second(tNowLocal);
-  if (iThisSecond != iLastSecondPrinted) {
     iLastSecondPrinted = iThisSecond;
     sprintf(sTimeStr, "%02d:%02d:%02d", hour(tNowLocal), minute(tNowLocal), iThisSecond);
-    Serial.println(sTimeStr);
+    //Serial.println(sTimeStr);
 
-    Display.Digit[0] = sTimeStr[3];
-    Display.Digit[1] = sTimeStr[4];
-    Display.Digit[2] = sTimeStr[6];
-    Display.Digit[3] = sTimeStr[7];
+    //Display.Digit[0] = sTimeStr[3];
+    //Display.Digit[1] = sTimeStr[4];
+    //Display.Digit[2] = sTimeStr[6];
+    //Display.Digit[3] = sTimeStr[7];
 
+    Serial.println(c);
+    
+    Display.Digit[0] = c;
+    Display.Digit[1] = c;
+    Display.Digit[2] = c;
+    Display.Digit[3] = c;
+
+    if (++c > 'Z')  c = '0';
+
+    Display.Annunciator[ca] = false;
+    ca = (CLOCK_ANNUNCIATOR) ( ((int)ca) + 1);
+    if (ca >= CLOCK_NUM_ANNUNCIATORS)   ca = CLOCK_ANNUNCIATOR_AM;
+    Display.Annunciator[ca]   = true;
+      
     //Display.Annunciator[CLOCK_ANNUNCIATOR_COLON] = true;
     
     Display.Update();
@@ -162,6 +177,6 @@ void loop()
     //LedDriver.WriteDigit(9, MAX6954_REG_PLANE0 | MAX6954_REG_PLANE1, bit);
     //if (bit & 0x80) bit = 1;
     //else            bit = bit << 1;
-  }
-  delay(50000);
+
+  delay(1000);
 }

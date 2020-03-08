@@ -77,6 +77,7 @@ uint16_t tMaximBitBangSpi::Write16(uint16_t x)
     }
 
     digitalWrite(_ClkPin, LOW);
+    MAXIM_LOGIC_DELAY;
   }
 
   // Take the clock pin high again, so that we can take it low to start a new cycle

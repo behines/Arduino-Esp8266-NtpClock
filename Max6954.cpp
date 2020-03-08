@@ -73,16 +73,16 @@ void tMax6954::Init(uint8_t NumDigits)
   Serial.print(F("Display Test..."));
   for (i=0; i< 1; i++) {
   DisplayTest(true);
-  delay(2000);
+  delay(1000);
   DisplayTest(false);
-  delay(2000);
+  delay(1000);
   }
   Serial.println(F("Done"));
 
   //Serial.println(F("Reading Port Configuration Register"))
 
   // Set brightness to 50%
-  Serial.println(F("Set brightness to 50%\n"));
+  Serial.println(F("Set brightness to 10/15\n"));
   SetBrightness(10);
 
   // Set number of digits to two.  Ths is the "Scan-Limit" register
@@ -132,7 +132,7 @@ void tMax6954::WriteCmd(uint8_t Register, uint8_t Data)
   // drive CLK low
   digitalWrite(MAX_SCLK_GPIO, LOW);
   #endif
-  
+
   Serial.print("0x");
   Serial.println(cmd,HEX);
 }

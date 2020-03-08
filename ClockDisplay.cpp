@@ -169,15 +169,6 @@ void tClockDisplay::_LightUpSegment(int ClockDigit, int Segment)
   // If it's a non-existent segment (e.g. for a '0' in the first digit), bail out
   if (OutputNum == 0  ||  CathodeNum == 0)  return;
 
-  Serial.print("LightUpSeg: Digit ");
-  Serial.print(ClockDigit);
-  Serial.print(" Seg ");
-  Serial.print(Segment);
-  Serial.print("->  Output ");
-  Serial.print(OutputNum);
-  Serial.print("  Cathode ");
-  Serial.println(CathodeNum);
-
   _TurnOnMaxSegment(OutputNum, CathodeNum);
 }
 
