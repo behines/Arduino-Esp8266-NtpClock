@@ -18,9 +18,19 @@
 #include "ClockDisplay.h"
 
 extern "C" {
-#define USE_US_TIMER 1
-#include "user_interface.h"
-void timerCallback(void *pArg);
+  // This define makes the microsecond timer call os_timer_arm_us visible
+  // I'm not using it now, but it's worth keeping note of here
+  #define USE_US_TIMER 1
+
+  // This appears to define lots of ESP library functions, like for Wifi
+  #include "user_interface.h"
+  
+  // The callback has to be extern-C'ed in order to compile
+  // ISRs need to have ICACHE_RAM_ATTR before the function definition to run 
+  // the interrupt code in RAM. See
+  // https://stackoverflow.com/questions/58113937/esp8266-arduino-why-is-it-necessary-to-add-the-icache-ram-attr-macro-to-isrs-an
+  // I assume a timer callback is similar.
+  void ICACHE_RAM_ATTR timerCallback(void *pArg);
 }
 
 
@@ -51,14 +61,14 @@ static const char ntpServerName[] = "us.pool.ntp.org";
 
 tMax6954        LedDriver;
 tClockDisplay   Display(LedDriver);
-//tWiFiConnection WiFiConnection(NTP_SSID, NTP_PASSWD, ModuleLedPin);
-//tNtp            NtpServer(ntpServerName, localPort, NTP_REFRESH_INTERVAL_SECONDS);
+tWiFiConnection WiFiConnection(NTP_SSID, NTP_PASSWD, ModuleLedPin);
+tNtp            NtpServer(ntpServerName, localPort, NTP_REFRESH_INTERVAL_SECONDS);
 tTimeZoneSet    TimeZoneSet;
 os_timer_t      MyTimer;
 int             iLastVal      = LOW;
   
 // start of timerCallback
-void timerCallback(void *pArg) {
+void ICACHE_RAM_ATTR timerCallback(void *pArg) {
   if (iLastVal == LOW) {
     digitalWrite(NodeLedPin, HIGH);
     iLastVal = HIGH;
@@ -87,9 +97,13 @@ void setup()
  
   pinMode(NodeLedPin, OUTPUT);
 
-  // Connect to the router.  0 means to try forever
-  // WiFiConnection.ConnectToRouter(0);
-  WiFi.mode(WIFI_OFF);
+  // Disable watchdog during the Wifi Init
+  // See https://techtutorialsx.com/2017/01/21/esp8266-watchdog-functions/
+  ESP.wdtDisable();
+    // Connect to the router.  0 means to try forever
+    WiFiConnection.ConnectToRouter(0);
+    // WiFi.mode(WIFI_OFF);
+  ESP.wdtEnable(1000);
 
   //PrintAllSevenSegmentDigits();
   os_timer_disarm(&MyTimer);
@@ -100,7 +114,7 @@ void setup()
   // 0 for once and 1 for repeating
   os_timer_arm(&MyTimer, 250, true);
 
-  // This line was in one of the demos, but it seems to make the timer go 10x faste
+  // This line was in one of the demos, but it seems to make the timer go 10x faster
   // than I request.
   // system_timer_reinit();
 
@@ -117,45 +131,68 @@ void setup()
 
 void loop()
 {
-  static char               c = '0';
-  static CLOCK_ANNUNCIATOR ca = CLOCK_ANNUNCIATOR_AM;
+  //static char               c = '0';
+  //static CLOCK_ANNUNCIATOR ca = CLOCK_ANNUNCIATOR_AM;
+  static char cAmPm;
   
   static time_t tNow, tNowLocal;
   static int    iLastSecondPrinted = -1;
   static int    iThisSecond;
   static char   sTimeStr[30];
+  static bool   bColon    = false;
   static int    iTimeZone = 3;
-
+  static int    iHour24, iHour12;
   static int    iBrightness = 1;
  
-  tNow      = 0; //NtpServer.GetUtcTime();
-  tNowLocal = TimeZoneSet.TimeZone(iTimeZone)->UtcToLocal(tNow);
+  tNow        = NtpServer.GetUtcTime();
+  tNowLocal   = TimeZoneSet.TimeZone(iTimeZone)->UtcToLocal(tNow);
 
   iThisSecond = second(tNowLocal);
+  if (iThisSecond == 0)   bColon = true;
+
+  
+  if (iThisSecond != iLastSecondPrinted) {
     iLastSecondPrinted = iThisSecond;
-    sprintf(sTimeStr, "%02d:%02d:%02d", hour(tNowLocal), minute(tNowLocal), iThisSecond);
-    //Serial.println(sTimeStr);
+    iHour24 = hour(tNowLocal);
 
-    //Display.Digit[0] = sTimeStr[3];
-    //Display.Digit[1] = sTimeStr[4];
-    //Display.Digit[2] = sTimeStr[6];
-    //Display.Digit[3] = sTimeStr[7];
-
-    Serial.println(c);
+    if (iHour24 < 12) {
+      Display.Annunciator[CLOCK_ANNUNCIATOR_AM] = true;
+      Display.Annunciator[CLOCK_ANNUNCIATOR_PM] = false;
+      cAmPm = 'A';
+    }
+    else {
+      Display.Annunciator[CLOCK_ANNUNCIATOR_AM] = false;
+      Display.Annunciator[CLOCK_ANNUNCIATOR_PM] = true;
+      cAmPm = 'P';
+    }
+  
+    iHour12 = iHour24 >  12 ? iHour24-12 :
+              iHour24 ==  0 ? 12 :
+              iHour24;              
     
-    Display.Digit[0] = c;
-    Display.Digit[1] = c;
-    Display.Digit[2] = c;
-    Display.Digit[3] = c;
+    sprintf(sTimeStr, "%02d:%02d:%02d %cM", iHour12, minute(tNowLocal), iThisSecond, cAmPm);
+    Serial.println(sTimeStr);
 
-    if (++c > 'Z')  c = '0';
+    Display.Digit[0] = sTimeStr[0];
+    Display.Digit[1] = sTimeStr[1];
+    Display.Digit[2] = sTimeStr[3];
+    Display.Digit[3] = sTimeStr[4];
 
-    Display.Annunciator[ca] = false;
-    ca = (CLOCK_ANNUNCIATOR) ( ((int)ca) + 1);
-    if (ca >= CLOCK_NUM_ANNUNCIATORS)   ca = CLOCK_ANNUNCIATOR_AM;
-    Display.Annunciator[ca]   = true;
-      
-    //Display.Annunciator[CLOCK_ANNUNCIATOR_COLON] = true;
+    //Serial.println(c);
+    
+    //Display.Digit[0] = c;
+    //Display.Digit[1] = c;
+    //Display.Digit[2] = c;
+    //Display.Digit[3] = c;
+
+    // if (++c > 'Z')  c = '0';
+
+    //Display.Annunciator[ca] = false;
+    //ca = (CLOCK_ANNUNCIATOR) ( ((int)ca) + 1);
+    //if (ca >= CLOCK_NUM_ANNUNCIATORS)   ca = CLOCK_ANNUNCIATOR_AM;
+    //Display.Annunciator[ca]   = true;
+    
+    Display.Annunciator[CLOCK_ANNUNCIATOR_COLON] = bColon;
     
     Display.Update();
 
@@ -178,5 +215,7 @@ void loop()
     //if (bit & 0x80) bit = 1;
     //else            bit = bit << 1;
 
-  delay(1000);
+    bColon = !bColon;
+  }
+  delay(100);
 }

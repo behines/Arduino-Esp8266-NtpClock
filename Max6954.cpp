@@ -133,8 +133,8 @@ void tMax6954::WriteCmd(uint8_t Register, uint8_t Data)
   digitalWrite(MAX_SCLK_GPIO, LOW);
   #endif
 
-  Serial.print("0x");
-  Serial.println(cmd,HEX);
+  //Serial.print("0x");
+  //Serial.println(cmd,HEX);
 }
 
 
