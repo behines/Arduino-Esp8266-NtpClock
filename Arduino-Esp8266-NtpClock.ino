@@ -140,7 +140,7 @@ void loop()
   static int    iThisSecond;
   static char   sTimeStr[30];
   static bool   bColon    = false;
-  static int    iTimeZone = 3;
+  static int    iTimeZone = 3;    // See tTimeZoneSet::tTimeZoneSet in LocalTime.cpp
   static int    iHour24, iHour12;
   static int    iBrightness = 1;
  
@@ -170,10 +170,12 @@ void loop()
               iHour24 ==  0 ? 12 :
               iHour24;              
     
-    sprintf(sTimeStr, "%02d:%02d:%02d %cM", iHour12, minute(tNowLocal), iThisSecond, cAmPm);
+    sprintf(sTimeStr, "%02d:%02d:%02d %cM %s", iHour12, minute(tNowLocal), iThisSecond, 
+                      cAmPm, TimeZoneSet.TimeZone(iTimeZone)->CurTimeZoneShortName());
     Serial.println(sTimeStr);
 
-    Display.Digit[0] = sTimeStr[0];
+    
+    Display.Digit[0] = iHour12 > 9 ? '1' : ' ';
     Display.Digit[1] = sTimeStr[1];
     Display.Digit[2] = sTimeStr[3];
     Display.Digit[3] = sTimeStr[4];

@@ -21,9 +21,12 @@ friend class tTimeZoneSet;
   tLocalTime(TimeChangeRule DaylightTimeRule, TimeChangeRule StandardTimeRule);
 
   time_t UtcToLocal(time_t tUtcTime);
+  const char *CurTimeZoneShortName() { return _sTzAbbrev; }
 
 protected:
   Timezone _tz;
+  
+  const char *_sTzAbbrev;
 
   static const TimeChangeRule usEDT;
   static const TimeChangeRule usEST;

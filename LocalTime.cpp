@@ -22,6 +22,9 @@ const TimeChangeRule tLocalTime::usPDT = { "PDT", Second, Sun, Mar, 2, -420 };  
 const TimeChangeRule tLocalTime::usPST = { "PST", First,  Sun, Nov, 2, -480 };   //UTC - 8 hours
 
 
+// Static strings
+static const char sNoTimeZone[] = "None";
+
 /*****************************************
 * tLocalTime Constructor
 * 
@@ -30,6 +33,7 @@ const TimeChangeRule tLocalTime::usPST = { "PST", First,  Sun, Nov, 2, -480 };  
 tLocalTime::tLocalTime(TimeChangeRule DaylightTimeRule, TimeChangeRule StandardTimeRule) :
   _tz(DaylightTimeRule, StandardTimeRule)
 {
+   _sTzAbbrev = sNoTimeZone;
 }
 
 
@@ -47,8 +51,10 @@ time_t tLocalTime::UtcToLocal(time_t tUtcTime)
 
   tCurLocalTime = _tz.toLocal(tUtcTime, &pTcr);
 
-  //Serial.print("The time zone is: ");
-  //Serial.println(pTcr->abbrev);
+  _sTzAbbrev = (pTcr == NULL) ? sNoTimeZone : pTcr->abbrev;  
+
+  // Serial.print("The time zone is: ");
+  // Serial.println(pTcr->abbrev);
 
   return tCurLocalTime;
 }
